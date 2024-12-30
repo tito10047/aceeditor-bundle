@@ -2,6 +2,8 @@ import {Controller} from '@hotwired/stimulus';
 import Ace from 'ace-builds/src-noconflict/ace.js';
 import 'ace-builds/src-noconflict/ext-language_tools.js';
 
+const importMapScript = document.querySelector('script[type="importmap"]');
+const importMap = JSON.parse(importMapScript.textContent);
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers
  * @see https://symfony.com/doc/current/frontend/asset_mapper.html#how-does-the-importmap-work
@@ -16,8 +18,6 @@ if (typeof Worker !== 'undefined'){
 			if (!options) {
 				options = {};
 			}
-			const importMapScript = document.querySelector('script[type="importmap"]');
-			const importMap = JSON.parse(importMapScript.textContent);
 			for (const [key, url] of Object.entries(importMap.imports)) {
 				let parts = key.split('/');
 				if (parts.length > 1) {
@@ -35,6 +35,34 @@ if (typeof Worker !== 'undefined'){
 
 	Worker = AceWorker;
 }
+
+/**
+ * @see https://symfony.com/doc/current/frontend/asset_mapper.html#how-does-the-importmap-work
+ * We need to load ace editor modules from importmap generated from symfony/asset-mapper.
+ * So we need call Ace.config.setModuleLoader("ace/mode/javascript", () => import("<real path for javascript module file>")
+ * We now that file is for aceEditor because it ends with "mode-<mode>.js" or "theme-<theme>.js" name.
+ */
+for (const [key, url] of Object.entries(importMap.imports)) {
+	let parts = key.split('/');
+	if (parts.length > 1) {
+		let key = parts[parts.length - 1];
+		['worker'].forEach((type) => {
+			if (key.substring(0, type.length + 1) === type + '-' && key.substring(key.length - 3) === '.js') {
+				let module = "ace/mode/" + key.substring(type.length + 1, key.length - 3) + "_worker";
+				Ace.config.setModuleLoader(module, () => import(url));
+			}
+		});
+		['mode', 'theme'].forEach((type) => {
+			if (key.substring(0, type.length + 1) === type + '-' && key.substring(key.length - 3) === '.js') {
+				let module = "ace/" + type + "/" + key.substring(type.length + 1, key.length - 3);
+				Ace.config.setModuleLoader(module, () => import(url));
+			}
+		});
+	}
+}
+// We need to set this to false because we want to load worker by AceWorker not from blob.
+Ace.config.set("loadWorkerFromBlob", false);
+
 export default class extends Controller {
 	static targets = ['editor', 'textarea'];
 	static values = {
@@ -42,34 +70,6 @@ export default class extends Controller {
 	};
 
 	connect() {
-		/**
-		 * @see https://symfony.com/doc/current/frontend/asset_mapper.html#how-does-the-importmap-work
-		 * We need to load ace editor modules from importmap generated from symfony/asset-mapper.
-		 * So we need call Ace.config.setModuleLoader("ace/mode/javascript", () => import("<real path for javascript module file>")
-		 * We now that file is for aceEditor because it ends with "mode-<mode>.js" or "theme-<theme>.js" name.
-		 */
-		const importMapScript = document.querySelector('script[type="importmap"]');
-		const importMap = JSON.parse(importMapScript.textContent);
-		for (const [key, url] of Object.entries(importMap.imports)) {
-			let parts = key.split('/');
-			if (parts.length > 1) {
-				let key = parts[parts.length - 1];
-				['worker'].forEach((type) => {
-					if (key.substring(0, type.length + 1) === type + '-' && key.substring(key.length - 3) === '.js') {
-						let module = "ace/mode/" + key.substring(type.length + 1, key.length - 3) + "_worker";
-						Ace.config.setModuleLoader(module, () => import(url));
-					}
-				});
-				['mode', 'theme'].forEach((type) => {
-					if (key.substring(0, type.length + 1) === type + '-' && key.substring(key.length - 3) === '.js') {
-						let module = "ace/" + type + "/" + key.substring(type.length + 1, key.length - 3);
-						Ace.config.setModuleLoader(module, () => import(url));
-					}
-				});
-			}
-		}
-		// We need to set this to false because we want to load worker by AceWorker not from blob.
-		Ace.config.set("loadWorkerFromBlob", false);
 		this.editor = Ace.edit(this.editorTarget);
 
 		this.textareaTarget.style.visibility = 'hidden';
