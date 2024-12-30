@@ -16,7 +16,7 @@ class AceEditorTypeTest extends TestCase
 
     public function setUp(): void
     {
-        $this->formType = new AceEditorType();
+        $this->formType = new AceEditorType(false);
     }
 
     public function testGetParent(): void
@@ -42,5 +42,6 @@ class AceEditorTypeTest extends TestCase
 
         $resolved = $opts->resolve(['width' => '101foo']);
         $this->assertSame(['value' => '101foo', 'unit' => 'px'], $resolved['width']);
+
     }
 }

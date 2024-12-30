@@ -9,9 +9,9 @@ automatically registering the `ace_editor` form type.
 
 Check the table below to check if your PHP and symfony versions are supported.
 
-| PHP version(s)  | Symfony version(s)  | AceEditorBundle version  |
-| --------------- | ------------------- | ------------------------------------------------------------------ |
-| >= 8.1          | ^5.4 \| ^6.4        | [^5.0](https://github.com/norberttech/aceeditor-bundle/tree/5.x)   |
+| PHP version(s)  | Symfony version(s)   | AceEditorBundle version  |
+| --------------- |----------------------| ------------------------------------------------------------------ |
+| >= 8.1          | ^5.4 \| ^6.4 \| ^7.1 | [^5.0](https://github.com/norberttech/aceeditor-bundle/tree/5.x)   |
 
 For older unsupported versions check the [releases](https://github.com/norberttech/aceeditor-bundle/releases) page.
 
@@ -62,7 +62,8 @@ $builder->add('description', AceEditorType::class, [
     'options_enable_basic_autocompletion' => true,
     'options_enable_live_autocompletion' => true,
     'options_enable_snippets' => false
-    'keyboard_handler' => null
+    'keyboard_handler' => null,
+    'autocomplete_worlds'=>["foo", "bar", "baz"]
 ]);
 ```
 
@@ -110,3 +111,19 @@ tar -xvf v${ACE_VERSION}.tar.gz
 mv ace-${ACE_VERSION} ace
 rm v${ACE_VERSION}.tar.gz
 ```
+
+## Use with Stimulus and Asset Mapper
+
+Stimulus version is supported only with Asset mapper dependency
+
+- ```composer require symfony/stimulus-bundle```
+- ```composer require symfony/asset-mapper ```
+- ```bin/console importmap:require ace-builds/css/ace.css```
+- ```bin/console importmap:require ace-builds/src-noconflict/ace.js```
+- ```bin/console importmap:require ace-builds/src-noconflict/ext-language_tools.js```
+
+fell free to add more dependencies for your theme and mode
+
+- ```bin/console importmap:require ace-builds/src-noconflict/theme-monokai.js```
+- ```bin/console importmap:require ace-builds/src-noconflict/worker-javascript.js```
+- ```bin/console importmap:require ace-builds/src-noconflict/mode-javascript.js```
