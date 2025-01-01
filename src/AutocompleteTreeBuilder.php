@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace AceEditorBundle;
 
-final readonly class AutocompleteTreeBuilder implements AutocompleteBuilderInterface
+final class AutocompleteTreeBuilder implements AutocompleteBuilderInterface
 {
     public function __construct(
         private readonly array $tree,
