@@ -13,16 +13,23 @@ namespace AceEditorBundle;
 final class AutocompleteTreeBuilder implements AutocompleteBuilderInterface
 {
     public function __construct(
+        /** @var array<mixed> */
         private readonly array $tree,
         private string $separator = '.'
     ) {
     }
 
+    /** @return string[] */
     public function buildWords(): array
     {
         return $this->populateAutocompleteTree($this->tree, "");
     }
 
+    /**
+     * @param array<mixed> $tree
+     * @param string $path
+     * @return string[]
+     */
     private function populateAutocompleteTree(array $tree, string $path): array
     {
         $autocompleteWorlds = [ ];

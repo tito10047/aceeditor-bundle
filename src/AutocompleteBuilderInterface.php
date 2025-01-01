@@ -12,5 +12,6 @@ namespace AceEditorBundle;
 
 interface AutocompleteBuilderInterface
 {
+    /** @return string[] */
     public function buildWords(): array;
 }
