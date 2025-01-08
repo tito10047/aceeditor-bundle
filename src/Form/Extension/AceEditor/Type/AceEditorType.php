@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AceEditorBundle\Form\Extension\AceEditor\Type;
 
+use AceEditorBundle\AutocompleteBuilderInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Exception\InvalidArgumentException;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -82,6 +83,7 @@ final class AceEditorType extends AbstractType
             'options_enable_snippets'             => false,
             'keyboard_handler'                    => null,
             'autocomplete_worlds'                 => [],
+            'autocomplete_builder'                 => null,
         ]);
 
         $optionAllowedTypes = [
@@ -101,6 +103,7 @@ final class AceEditorType extends AbstractType
             'options_enable_snippets'             => ['bool', 'null'],
             'keyboard_handler'                    => ['null', 'string'],
             'autocomplete_worlds'                 => ['array'],
+            'autocomplete_builder'                => ['AceEditorBundle\AutocompleteBuilderInterface', 'null'],
         ];
         foreach ($optionAllowedTypes as $option => $allowedTypes) {
             $resolver->setAllowedTypes($option, $allowedTypes);
@@ -118,6 +121,8 @@ final class AceEditorType extends AbstractType
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
+        /** @var AutocompleteBuilderInterface|null $autocompleteBuilder */
+        $autocompleteBuilder = $options['autocomplete_builder'];
         $view->vars = array_merge(
             $view->vars,
             [
@@ -139,7 +144,10 @@ final class AceEditorType extends AbstractType
                 'options_enable_snippets'             => $options['options_enable_snippets'],
                 'keyboard_handler'                    => $options['keyboard_handler'],
                 'use_stimulus'                        => $this->useStimulus,
-                'autocomplete_worlds'                 => $options['autocomplete_worlds'],
+                'autocomplete_worlds'                 => array_merge(
+                    $options['autocomplete_worlds'],
+                    $autocompleteBuilder?->buildWords() ?? []
+                ),
             ]
         );
     }
